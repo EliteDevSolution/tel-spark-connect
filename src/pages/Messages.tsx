@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserPlus, Phone, MoreVertical, Search, Send, Paperclip } from 'lucide-react';
+import { UserPlus, Phone, MoreVertical, Search, Send, Paperclip, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -41,16 +40,16 @@ const conversations: Conversation[] = [
       status: 'online',
     },
     lastMessage: {
-      text: 'I'll be there in 5 minutes',
+      text: "I'll be there in 5 minutes",
       time: '10:23 AM',
       isRead: true,
     },
     messages: [
-      { id: 'm1', text: 'Hey, are we still meeting today?', time: '10:15 AM', senderId: 'u1', isMe: false },
-      { id: 'm2', text: 'Yes, what time works for you?', time: '10:17 AM', senderId: 'me', isMe: true },
-      { id: 'm3', text: 'How about 2pm at the coffee shop?', time: '10:18 AM', senderId: 'u1', isMe: false },
-      { id: 'm4', text: 'Sounds good. I'll be there.', time: '10:20 AM', senderId: 'me', isMe: true },
-      { id: 'm5', text: 'I'll be there in 5 minutes', time: '10:23 AM', senderId: 'u1', isMe: false },
+      { id: 'm1', text: "Hey, are we still meeting today?", time: '10:15 AM', senderId: 'u1', isMe: false },
+      { id: 'm2', text: "Yes, what time works for you?", time: '10:17 AM', senderId: 'me', isMe: true },
+      { id: 'm3', text: "How about 2pm at the coffee shop?", time: '10:18 AM', senderId: 'u1', isMe: false },
+      { id: 'm4', text: "Sounds good. I'll be there.", time: '10:20 AM', senderId: 'me', isMe: true },
+      { id: 'm5', text: "I'll be there in 5 minutes", time: '10:23 AM', senderId: 'u1', isMe: false },
     ]
   },
   {
@@ -61,15 +60,15 @@ const conversations: Conversation[] = [
       status: 'busy',
     },
     lastMessage: {
-      text: 'Can you send me the report?',
+      text: "Can you send me the report?",
       time: '9:45 AM',
       isRead: true,
     },
     messages: [
-      { id: 'm6', text: 'Hi Sarah, do you have a minute?', time: '9:40 AM', senderId: 'me', isMe: true },
-      { id: 'm7', text: 'Sure, what's up?', time: '9:42 AM', senderId: 'u2', isMe: false },
-      { id: 'm8', text: 'I need the quarterly report for the meeting', time: '9:43 AM', senderId: 'me', isMe: true },
-      { id: 'm9', text: 'Can you send me the report?', time: '9:45 AM', senderId: 'u2', isMe: false },
+      { id: 'm6', text: "Hi Sarah, do you have a minute?", time: '9:40 AM', senderId: 'me', isMe: true },
+      { id: 'm7', text: "Sure, what's up?", time: '9:42 AM', senderId: 'u2', isMe: false },
+      { id: 'm8', text: "I need the quarterly report for the meeting", time: '9:43 AM', senderId: 'me', isMe: true },
+      { id: 'm9', text: "Can you send me the report?", time: '9:45 AM', senderId: 'u2', isMe: false },
     ]
   },
   {
@@ -81,15 +80,15 @@ const conversations: Conversation[] = [
       lastActive: '2 hours ago'
     },
     lastMessage: {
-      text: 'Let me know when you arrive',
+      text: "Let me know when you arrive",
       time: 'Yesterday',
       isRead: true,
     },
     messages: [
-      { id: 'm10', text: 'Are you coming to the event tomorrow?', time: 'Yesterday', senderId: 'u3', isMe: false },
-      { id: 'm11', text: 'Yes, I'll be there around 7pm', time: 'Yesterday', senderId: 'me', isMe: true },
-      { id: 'm12', text: 'Great, looking forward to seeing you', time: 'Yesterday', senderId: 'u3', isMe: false },
-      { id: 'm13', text: 'Let me know when you arrive', time: 'Yesterday', senderId: 'u3', isMe: false },
+      { id: 'm10', text: "Are you coming to the event tomorrow?", time: 'Yesterday', senderId: 'u3', isMe: false },
+      { id: 'm11', text: "Yes, I'll be there around 7pm", time: 'Yesterday', senderId: 'me', isMe: true },
+      { id: 'm12', text: "Great, looking forward to seeing you", time: 'Yesterday', senderId: 'u3', isMe: false },
+      { id: 'm13', text: "Let me know when you arrive", time: 'Yesterday', senderId: 'u3', isMe: false },
     ]
   },
   {
@@ -101,15 +100,15 @@ const conversations: Conversation[] = [
       lastActive: '1 day ago'
     },
     lastMessage: {
-      text: 'Thanks for your help with the project!',
+      text: "Thanks for your help with the project!",
       time: 'Yesterday',
       isRead: false,
     },
     messages: [
-      { id: 'm14', text: 'Hi Emily, I finished the design you requested', time: 'Yesterday', senderId: 'me', isMe: true },
-      { id: 'm15', text: 'That was quick! Can I see it?', time: 'Yesterday', senderId: 'u4', isMe: false },
-      { id: 'm16', text: 'Just sent it to your email', time: 'Yesterday', senderId: 'me', isMe: true },
-      { id: 'm17', text: 'Thanks for your help with the project!', time: 'Yesterday', senderId: 'u4', isMe: false },
+      { id: 'm14', text: "Hi Emily, I finished the design you requested", time: 'Yesterday', senderId: 'me', isMe: true },
+      { id: 'm15', text: "That was quick! Can I see it?", time: 'Yesterday', senderId: 'u4', isMe: false },
+      { id: 'm16', text: "Just sent it to your email", time: 'Yesterday', senderId: 'me', isMe: true },
+      { id: 'm17', text: "Thanks for your help with the project!", time: 'Yesterday', senderId: 'u4', isMe: false },
     ]
   },
   {
@@ -120,14 +119,14 @@ const conversations: Conversation[] = [
       status: 'online',
     },
     lastMessage: {
-      text: 'We need to discuss the new requirements',
+      text: "We need to discuss the new requirements",
       time: 'Monday',
       isRead: true,
     },
     messages: [
-      { id: 'm18', text: 'Did you see the client's email?', time: 'Monday', senderId: 'u5', isMe: false },
-      { id: 'm19', text: 'Yes, they want to change the scope', time: 'Monday', senderId: 'me', isMe: true },
-      { id: 'm20', text: 'We need to discuss the new requirements', time: 'Monday', senderId: 'u5', isMe: false },
+      { id: 'm18', text: "Did you see the client's email?", time: 'Monday', senderId: 'u5', isMe: false },
+      { id: 'm19', text: "Yes, they want to change the scope", time: 'Monday', senderId: 'me', isMe: true },
+      { id: 'm20', text: "We need to discuss the new requirements", time: 'Monday', senderId: 'u5', isMe: false },
     ]
   },
 ];
@@ -346,8 +345,6 @@ const EmptyState = () => {
     </div>
   );
 };
-
-import { MessageSquare } from 'lucide-react';
 
 const Messages = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
