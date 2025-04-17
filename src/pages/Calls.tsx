@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,30 +13,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-interface Call {
-  id: string;
-  type: 'incoming' | 'outgoing' | 'missed';
-  contact: string;
-  phoneNumber: string;
-  time: string;
-  duration: string;
-  avatar?: string;
-}
-
-const callHistory: Call[] = [
-  { id: '1', type: 'incoming', contact: 'John Smith', phoneNumber: '+1 (555) 123-4567', time: 'Today, 10:23 AM', duration: '4m 32s' },
-  { id: '2', type: 'outgoing', contact: 'Sarah Johnson', phoneNumber: '+1 (555) 234-5678', time: 'Today, 9:45 AM', duration: '2m 15s' },
-  { id: '3', type: 'missed', contact: 'Michael Brown', phoneNumber: '+1 (555) 345-6789', time: 'Yesterday', duration: '-' },
-  { id: '4', type: 'incoming', contact: 'Emily Davis', phoneNumber: '+1 (555) 456-7890', time: 'Yesterday', duration: '1m 48s' },
-  { id: '5', type: 'outgoing', contact: 'Robert Wilson', phoneNumber: '+1 (555) 567-8901', time: 'Yesterday', duration: '5m 23s' },
-  { id: '6', type: 'incoming', contact: 'Jennifer Garcia', phoneNumber: '+1 (555) 678-9012', time: '2 days ago', duration: '3m 11s' },
-  { id: '7', type: 'outgoing', contact: 'David Martinez', phoneNumber: '+1 (555) 789-0123', time: '2 days ago', duration: '1m 37s' },
-  { id: '8', type: 'missed', contact: 'Lisa Rodriguez', phoneNumber: '+1 (555) 890-1234', time: '3 days ago', duration: '-' },
-];
+import { useCall } from '@/contexts/CallContext';
+import { telynxClient, Call } from '@/lib/api/telynxClient';
+import { toast } from 'sonner';
 
 const CallDialer = () => {
   const [dialNumber, setDialNumber] = useState('');
+  const { makeCall } = useCall();
   
   const handleNumberClick = (num: string) => {
     setDialNumber(prev => prev + num);
@@ -44,6 +27,17 @@ const CallDialer = () => {
   
   const handleClear = () => {
     setDialNumber(prev => prev.slice(0, -1));
+  };
+  
+  const handleDial = async () => {
+    if (!dialNumber) return;
+    
+    try {
+      await makeCall(dialNumber);
+    } catch (error) {
+      console.error('Error initiating call:', error);
+      toast.error('Failed to initiate call. Please try again.');
+    }
   };
   
   const dialPad = [
@@ -94,6 +88,7 @@ const CallDialer = () => {
           <Button 
             className="h-14 w-14 rounded-full bg-green-500 hover:bg-green-600"
             disabled={!dialNumber}
+            onClick={handleDial}
           >
             <Phone className="h-6 w-6" />
           </Button>
@@ -105,11 +100,39 @@ const CallDialer = () => {
 
 const CallHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [callHistory, setCallHistory] = useState<Call[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { makeCall } = useCall();
+  
+  useEffect(() => {
+    const fetchCallHistory = async () => {
+      try {
+        setLoading(true);
+        const history = await telynxClient.getCallHistory();
+        setCallHistory(history);
+      } catch (error) {
+        console.error('Error fetching call history:', error);
+        toast.error('Failed to load call history');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCallHistory();
+  }, []);
   
   const filteredCalls = callHistory.filter(call => 
     call.contact.toLowerCase().includes(searchTerm.toLowerCase()) || 
     call.phoneNumber.includes(searchTerm)
   );
+  
+  const handleCall = async (phoneNumber: string, contactName: string) => {
+    try {
+      await makeCall(phoneNumber, contactName);
+    } catch (error) {
+      console.error('Error initiating call:', error);
+    }
+  };
   
   return (
     <Card>
@@ -128,74 +151,93 @@ const CallHistory = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Type</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead className="hidden md:table-cell">Phone Number</TableHead>
-              <TableHead className="hidden md:table-cell">Time</TableHead>
-              <TableHead>Duration</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredCalls.map((call) => (
-              <TableRow key={call.id}>
-                <TableCell>
-                  {call.type === 'incoming' && (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
-                      <ArrowDownRight className="h-4 w-4" />
-                    </div>
-                  )}
-                  {call.type === 'outgoing' && (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                      <ArrowUpRight className="h-4 w-4" />
-                    </div>
-                  )}
-                  {call.type === 'missed' && (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-600">
-                      <ArrowDownRight className="h-4 w-4" />
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Avatar className="h-8 w-8 mr-2">
-                      <AvatarImage src={call.avatar} alt={call.contact} />
-                      <AvatarFallback className="bg-telynx-100 text-telynx-700">
-                        {call.contact.split(' ').map(name => name[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="font-medium">{call.contact}</div>
-                  </div>
-                </TableCell>
-                <TableCell className="hidden md:table-cell">{call.phoneNumber}</TableCell>
-                <TableCell className="hidden md:table-cell">{call.time}</TableCell>
-                <TableCell>{call.duration}</TableCell>
-                <TableCell>
-                  <div className="flex items-center justify-end space-x-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Contact</DropdownMenuItem>
-                        <DropdownMenuItem>Send Message</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <p className="text-muted-foreground">Loading call history...</p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Type</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead className="hidden md:table-cell">Phone Number</TableHead>
+                <TableHead className="hidden md:table-cell">Time</TableHead>
+                <TableHead>Duration</TableHead>
+                <TableHead></TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredCalls.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <p className="text-muted-foreground">No call history found</p>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredCalls.map((call) => (
+                  <TableRow key={call.id}>
+                    <TableCell>
+                      {call.type === 'incoming' && (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
+                          <ArrowDownRight className="h-4 w-4" />
+                        </div>
+                      )}
+                      {call.type === 'outgoing' && (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                          <ArrowUpRight className="h-4 w-4" />
+                        </div>
+                      )}
+                      {call.type === 'missed' && (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-600">
+                          <ArrowDownRight className="h-4 w-4" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Avatar className="h-8 w-8 mr-2">
+                          <AvatarImage alt={call.contact} />
+                          <AvatarFallback className="bg-telynx-100 text-telynx-700">
+                            {call.contact.split(' ').map(name => name[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="font-medium">{call.contact}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{call.phoneNumber}</TableCell>
+                    <TableCell className="hidden md:table-cell">{call.time}</TableCell>
+                    <TableCell>{call.duration}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end space-x-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => handleCall(call.phoneNumber, call.contact)}
+                        >
+                          <Phone className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>View Contact</DropdownMenuItem>
+                            <DropdownMenuItem>Send Message</DropdownMenuItem>
+                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );

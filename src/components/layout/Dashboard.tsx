@@ -4,8 +4,12 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import { Outlet } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
+import ActiveCall from '@/components/call/ActiveCall';
+import { useCall } from '@/contexts/CallContext';
 
 const Dashboard = () => {
+  const { callStatus } = useCall();
+  
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
@@ -16,6 +20,7 @@ const Dashboard = () => {
         </main>
       </div>
       <Toaster position="top-right" />
+      {callStatus !== 'idle' && <ActiveCall />}
     </div>
   );
 };
